@@ -1,5 +1,5 @@
 <?php
-namespace common\models;
+namespace frontend\models;
 
 use Yii;
 use yii\base\Model;
@@ -7,7 +7,7 @@ use yii\base\Model;
 /**
  * Login form
  */
-class AdminLoginForm extends Model
+class LoginForm extends Model
 {
     public $username;
     public $password;
@@ -70,7 +70,7 @@ class AdminLoginForm extends Model
     protected function getUser()
     {
         if ($this->_user === null) {
-            $this->_user = Admin::findByUsername($this->username);
+            $this->_user = User::findByUsername($this->username);
         }
 
         return $this->_user;
