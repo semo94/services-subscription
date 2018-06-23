@@ -11,14 +11,25 @@ return [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'controllerNamespace' => 'frontend\controllers',
+    'modules' => [
+        // Configuration Yii2-User Frontend //
+        'user' => [
+            'class' => 'dektrium\user\Module',
+            'enableFlashMessages' => false,
+            'enableRegistration' => true,
+            'enableUnconfirmedLogin' => false,
+            'confirmWithin' => 21600,
+            'cost' => 12,
+        ],
+    ],
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-frontend',
         ],
         'user' => [
-            'identityClass' => 'frontend\models\User',
+            //'identityClass' => 'frontend\models\User',
             'enableAutoLogin' => true,
-            'identityCookie' => ['name' => '_frontendUser', ], //'httpOnly' => true
+            'identityCookie' => ['name' => '_frontendUser', 'httpOnly' => true, ],
         ],
         'session' => [
             // this is the name of the session cookie used for login on the frontend
@@ -48,6 +59,20 @@ return [
             'rules' => [
             '<alias:\w+>' => 'site/<alias>',
             ],
+        ],
+
+        'mailer' => [
+        'class' => 'yii\swiftmailer\Mailer',
+        'viewPath' => '@app/mailer',
+        'useFileTransport' => false,
+        'transport' => [
+            'class' => 'Swift_SmtpTransport',
+            'host' => 'smtp.gmail.com',
+            'username' => 'saleem.bakri94@gmail.com',
+            'password' => 'pass',
+            'port' => '587',
+            'encryption' => 'tls',
+                        ],
         ],
     ],
     'params' => $params,
