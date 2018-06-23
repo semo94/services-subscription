@@ -19,11 +19,16 @@ $this->params['breadcrumbs'][] = $this->title;
         <!-- <?= Html::a('Create Subscription', ['create'], ['class' => 'btn btn-success']) ?> -->
     </p>
 
+<?=Html::beginForm(['subscription/change-selection'],'post');?>
     <?= GridView::widget([
-        'dataProvider' => $dataProvider,
+        'dataProvider' => $dataProvider1,
         'columns' => [
 
-            ['class' => 'yii\grid\CheckboxColumn'],
+            ['class' => 'yii\grid\CheckboxColumn',
+            'checkboxOptions' => function($model, $key, $index, $widget) {
+                return ['value' => $model['id'], ];
+             },
+            ],
             ['class' => 'yii\grid\SerialColumn'],
 
             'title',
@@ -38,4 +43,15 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ],
     ]); ?>
+<?=Html::submitButton('Change Subscription', ['class' => 'btn btn-success']);?>
+<?= Html::endForm();?>
+
+
+<?= GridView::widget([
+  'dataProvider' => $dataProvider2,
+  'columns' => [
+    [ 'attribute' => 'subscription_id', 'header' => 'Your subscribed channels'],
+  ]
+]); ?>
+
 </div>

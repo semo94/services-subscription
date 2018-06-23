@@ -56,6 +56,16 @@ class User extends ActiveRecord implements IdentityInterface
         ];
     }
 
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSubscriptions()
+    {
+        return $this->hasMany(Subscription::className(), ['id' => 'subscription_id'])->viaTable('user_subscription', ['user_id' => 'id']);
+    }
+
+    
     /**
      * {@inheritdoc}
      */

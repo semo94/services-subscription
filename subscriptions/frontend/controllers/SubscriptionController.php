@@ -3,11 +3,16 @@
 namespace frontend\controllers;
 
 use Yii;
+use frontend\models\User;
 use frontend\models\Subscription;
 use frontend\models\SubscriptionSearch;
+use common\models\UserSubscription;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\db\ActiveQuery;
+use yii\db\Query;
+use \yii\data\ActiveDataProvider;
 
 /**
  * SubscriptionController implements the CRUD actions for Subscription model.
@@ -28,23 +33,27 @@ class SubscriptionController extends Controller
             ],
         ];
     }
-
     /**
      * Lists all Subscription models.
      * @return mixed
      */
     public function actionIndex()
     {
+        $currentID = Yii::$app->user->getId();
         $searchModel = new SubscriptionSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider1 = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider2 = new ActiveDataProvider([
+                              'query' => UserSubscription::find()->where(['user_id' => $currentID]),
+                          ]);
 
         if (Yii::$app->user->isGuest) {
           $this->redirect('../login');
         } else {
-          return $this->render('index', [
-              'searchModel' => $searchModel,
-              'dataProvider' => $dataProvider,
-          ]);
+          return $this->render('index', array(
+            'searchModel' => $searchModel,
+            'dataProvider1' => $dataProvider1,
+            'dataProvider2' => $dataProvider2,
+          ));
         }
     }
 
@@ -124,6 +133,45 @@ class SubscriptionController extends Controller
           $this->findModel($id)->delete();
           return $this->redirect(['index']);
         }
+    }
+
+    public function actionChangeSelection()
+    {
+      $currentID = Yii::$app->user->getId();
+      $user = User::findOne((int)$currentID);
+      $action=Yii::$app->request->post('action');
+      $selected=(array)Yii::$app->request->post('selection');
+      $allSubscriptions = Subscription::find()->all();
+      $subscriptions = array();
+
+      foreach ($allSubscriptions as $key => $value) {
+        array_push($subscriptions, $value->id);
+      }
+
+      $notSelected = array_diff($subscriptions, $selected);
+      $userSubscriptions = UserSubscription::find()->where(['user_id' => $currentID])->all();
+      $subscriped = array();
+
+      foreach ($userSubscriptions as $key => $value) {
+        array_push($subscriped, $value->subscription_id);
+      }
+
+      foreach($selected as $id){
+        if (!in_array($id,$subscriped)) {
+          $sub = Subscription::findOne((int)$id);
+          $user->link('subscriptions', $sub);
+        }
+      }
+
+      foreach ($notSelected as $id) {
+        if (in_array($id,$subscriped)) {
+          $userSub = UserSubscription::find()->where(['subscription_id' => $id])->one();
+          $userSub->delete();
+        }
+      }
+
+       return $this->redirect('index');
+
     }
 
     /**
