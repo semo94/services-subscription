@@ -74,13 +74,20 @@ class UserController extends Controller
      */
     public function actionCreate()
     {
+
         $model = new User();
+
         if (Yii::$app->user->isGuest) {
           return $this->goHome();
         }
-        else if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
+
+        else if ($model->load(Yii::$app->request->post())) {
+
+            if ($user = $model->signup() && $model->save()) {
+              return $this->redirect(['view', 'id' => $model->id]);
+            }
+
+        } else{
             return $this->render('create', [
                 'model' => $model,
             ]);

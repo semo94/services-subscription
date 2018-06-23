@@ -22,6 +22,11 @@ use Yii;
  */
 class User extends \yii\db\ActiveRecord
 {
+
+    const STATUS_DELETED = 0;
+    const STATUS_ACTIVE = 10;
+    const STATUS_DEACTIVE = 00;
+
     /**
      * {@inheritdoc}
      */
@@ -36,13 +41,23 @@ class User extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['username', 'auth_key', 'password_hash', 'email', 'created_at', 'updated_at'], 'required'],
-            [['status', 'created_at', 'updated_at'], 'integer'],
-            [['username', 'password_hash', 'password_reset_token', 'email'], 'string', 'max' => 255],
-            [['auth_key'], 'string', 'max' => 32],
-            [['username'], 'unique'],
-            [['email'], 'unique'],
-            [['password_reset_token'], 'unique'],
+
+            ['status', 'default', 'value' => self::STATUS_ACTIVE],
+            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+
+            ['username', 'trim'],
+            ['username', 'required'],
+            ['username', 'unique', 'targetClass' => '\backend\models\User', 'message' => 'This username has already been taken.'],
+            ['username', 'string', 'min' => 2, 'max' => 255],
+
+            ['email', 'trim'],
+            ['email', 'required'],
+            ['email', 'email'],
+            ['email', 'string', 'max' => 255],
+            ['email', 'unique', 'targetClass' => '\backend\models\User', 'message' => 'This email address has already been taken.'],
+
+            ['password_hash', 'required'],
+            ['password_hash', 'string', 'min' => 6],
         ];
     }
 
@@ -62,6 +77,45 @@ class User extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
+    }
+
+    /**
+     * Generates password hash from password and sets it to the model
+     *
+     * @param string $password
+     */
+    public function setPassword($password)
+    {
+        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+    }
+
+    public function getPassword()
+    {
+        return '';
+    }
+
+    /**
+     * Generates "remember me" authentication key
+     */
+    public function generateAuthKey()
+    {
+        $this->auth_key = Yii::$app->security->generateRandomString();
+    }
+
+
+    /**
+     * Signs user up.
+     *
+     * @return User|null the saved model or null if saving fails
+     */
+    public function signup()
+    {
+        if (!$this->validate()) {
+            return null;
+        }
+        $this->setPassword($this->password_hash);
+        $this->generateAuthKey();
+        return $this->save() ? $this : null;
     }
 
     /**
